@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditron | Filtrado de Excel</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h1 { color: #1a73e8; margin-bottom: 10px; }
+        p { color: #5f6368; font-size: 14px; margin-bottom: 25px; }
+        input[type="file"] { margin-bottom: 20px; width: 100%; }
+        button { background: #1a73e8; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #1557b0; }
+        .footer { margin-top: 15px; font-size: 11px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Auditron 🚀</h1>
+        <p>Sube cualquier Excel para extraer SKU y Precio automáticamente.</p>
+        
+        <!-- Action ajustado: verifica que la ruta a procesador.php sea correcta -->
+        <form action="/auditron/src/procesador.php" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <input type="file" name="excel_file" accept=".xlsx, .xls" required>
+            <button type="submit" id="btnSubmit">Iniciar Procesamiento</button>
+        </form>
+
+        <div class="footer">Sistema de Auditoría v1.0</div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').onsubmit = function() {
+            const btn = document.getElementById('btnSubmit');
+            btn.innerHTML = 'Buscando columnas... 🔎';
+            btn.style.background = '#808080';
+        };
+    </script>
+</body>
+</html>
