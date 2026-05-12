@@ -21,11 +21,14 @@
         <p>Sube cualquier Excel para extraer SKU y Precio automáticamente.</p>
         
         <!-- CAMBIO AQUÍ: Se eliminó /auditron/ para usar ruta relativa -->
-        <form action="src/procesador.php" method="POST" enctype="multipart/form-data" id="uploadForm">
-            <input type="file" name="excel_file" accept=".xlsx, .xls" required>
-            <button type="submit" id="btnSubmit">Iniciar Procesamiento</button>
-        </form>
+       <form action="../src/procesador.php" method="POST" enctype="multipart/form-data" id="uploadForm">
+    
+    <!-- El atributo 'name' DEBE ser excel_file -->
+    <input type="file" name="excel_file" accept=".xlsx, .xls" required>
+    
+    <button type="submit" id="btnSubmit">Iniciar Procesamiento</button>
 
+       </form> <!-- El cierre va DESPUÉS del botón -->
         <div class="footer">Sistema de Auditoría v1.0</div>
     </div>
 
