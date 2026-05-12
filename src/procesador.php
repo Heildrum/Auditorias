@@ -1,91 +1,87 @@
-
-     <?php
-// src/procesador.php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-$autoloadPath = __DIR__ . '/../vendor/autoload.php';
-$tablesPath = __DIR__ . '/../config/tables.php'; // Cambiamos init por tables
-
-// 1. Validaciones de archivos
-if (!file_exists($autoloadPath)) {
-    die(json_encode(['status' => 'error', 'message' => 'Falta vendor/autoload.php']));
-}
-require_once $autoloadPath;
-
-if (!file_exists($tablesPath)) {
-    die(json_encode(['status' => 'error', 'message' => 'No se encontró config/tables.php']));
-}
-
-// 2. Ejecutar tables.php (Esto conecta a la BD y limpia la tabla)
-// Usamos ob_start para que los "echo" de tables.php no ensucien el JSON de respuesta
-ob_start(); 
-require_once $tablesPath; 
-ob_end_clean(); 
+<?php
+// procesador.php
+require_once 'init.php';
+require_once 'vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['excel_file'])) {
+header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
+    $file = $_FILES['excel_file']['tmp_name'];
+
     try {
-        $file = $_FILES['excel_file']['tmp_name'];
         $spreadsheet = IOFactory::load($file);
         $sheet = $spreadsheet->getActiveSheet();
-        $data = $sheet->toArray();
+        $filas = $sheet->toArray();
 
-        $insertados = 0;
+        $nuevos = 0;
         $actualizados = 0;
+        $total = 0;
 
-        // Preparamos la consulta una sola vez fuera del bucle para mayor velocidad
-        $stmt = $conn->prepare("INSERT INTO productos_auditron (sku, precio) VALUES (?, ?) 
-                                ON DUPLICATE KEY UPDATE precio = VALUES(precio)");
+        // Omitir la primera fila si es encabezado (Título de columnas)
+        $primeraFila = true;
 
-        for ($i = 1; $i < count($data); $i++) {
-            $fila = $data[$i];
-            
-            $sku = isset($fila[0]) ? trim($fila[0]) : null;
+        foreach ($filas as $fila) {
+            if ($primeraFila) {
+                $primeraFila = false;
+                continue;
+            }
+
+            // 1. CAPTURA DE DATOS (Columna A = SKU, Columna B = Precio)
+            $skuRaw = isset($fila[0]) ? $fila[0] : '';
             $precioRaw = isset($fila[1]) ? $fila[1] : '0';
 
-            if ($sku !== null && $sku !== '') {
-                // Si el precio ya es un número (flotante), lo usamos directamente
-                if (is_numeric($precioRaw)) {
-                    $precioFinal = $precioRaw;
-                } else {
-                    // Limpieza para formatos de texto como "$ 1.234,50"
-                    $precioLimpio = preg_replace('/[^\d,.]/', '', $precioRaw);
-                    // Si tiene punto y coma, asumimos punto = miles y coma = decimal
-                    $precioFinal = str_replace(',', '.', str_replace('.', '', $precioLimpio));
-                }
+            // 2. TRANSFORMACIÓN PARA MERCADO LIBRE
+            // SKU: Quitamos espacios y pasamos a mayúsculas para evitar duplicados
+            $skuMeli = strtoupper(trim($skuRaw));
 
-                $stmt->bind_param("ss", $sku, $precioFinal); // Usamos "s" para evitar pérdida de precisión en PHP
+            // PRECIO: Manejo de formato Chile (7.390,00 -> 7390.00)
+            // Primero quitamos el punto de miles
+            $precioSinMiles = str_replace('.', '', $precioRaw);
+            // Luego cambiamos la coma decimal por punto
+            $precioConPunto = str_replace(',', '.', $precioSinMiles);
+            // Limpiamos cualquier otro carácter (como $) y convertimos a número
+            $precioMeli = floatval(preg_replace('/[^0-9.]/', '', $precioConPunto));
+
+            // 3. PROCESAMIENTO EN BASE DE DATOS
+            if (!empty($skuMeli)) {
+                // Usamos ON DUPLICATE KEY UPDATE para saber si es nuevo o actualizado
+                $stmt = $conn->prepare("INSERT INTO productos_auditron (sku, precio) 
+                                        VALUES (?, ?) 
+                                        ON DUPLICATE KEY UPDATE precio = VALUES(precio)");
+                
+                $stmt->bind_param("sd", $skuMeli, $precioMeli);
                 
                 if ($stmt->execute()) {
-                    // 1: Insertado, 2: Actualizado, 0: Ya existía con el mismo precio (lo contamos como éxito)
                     if ($stmt->affected_rows === 1) {
-                        $insertados++;
-                    } else {
+                        $nuevos++;
+                    } elseif ($stmt->affected_rows === 2) {
                         $actualizados++;
                     }
+                    $total++;
                 }
+                $stmt->close();
             }
         }
 
-        $stmt->close();
-        $total = $insertados + $actualizados;
-
         echo json_encode([
-            'status' => 'success',
-            'count' => $total,
-            'details' => [
-                'nuevos' => $insertados,
-                'actualizados' => $actualizados
-            ],
-            'message' => "Proceso completado. Total: $total (Nuevos: $insertados, Actualizados: $actualizados)"
+            "status" => "success",
+            "count" => $total,
+            "details" => ["nuevos" => $nuevos, "actualizados" => $actualizados],
+            "message" => "Proceso completado. Total: $total (Nuevos: $nuevos, Actualizados: $actualizados)"
         ]);
 
     } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Error: ' . $e->getMessage()]);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Error al procesar el archivo: " . $e->getMessage()
+        ]);
     }
-}   
+} else {
+    echo json_encode([
+        "status" => "error",
+        "message" => "No se recibió ningún archivo."
+    ]);
+}
+     
