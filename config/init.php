@@ -2,9 +2,9 @@
 // config/init.php
 
 $host = "localhost";
-$user = "root";  // Usuario estándar de XAMPP
-$pass = "";      // Contraseña vacía por defecto
-$db   = "auditron_db";
+$user = "root";    // Asegúrate de que este sea el usuario que creaste en phpMyAdmin
+$pass = "";    // La contraseña que pusiste en phpMyAdmin
+$db   = "auditoria_db";
 
 // Crear la conexión
 $conn = new mysqli($host, $user, $pass);
@@ -17,6 +17,7 @@ if ($conn->connect_error) {
 // Crear la base de datos si no existe
 $conn->query("CREATE DATABASE IF NOT EXISTS $db");
 
-// Seleccionar la base de datos para los siguientes archivos
+// Seleccionar la base de datos
 $conn->select_db($db);
 $conn->set_charset("utf8mb4");
+?>
