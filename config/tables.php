@@ -10,19 +10,19 @@ $sql = "CREATE TABLE IF NOT EXISTS productos_auditron (
     sku VARCHAR(100) NOT NULL,
     precio DECIMAL(15, 2) NOT NULL,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX (sku)
+    UNIQUE (sku) 
 ) ENGINE=InnoDB;";
 
 if ($conn->query($sql)) {
-    echo "✅ Estructura verificada: La tabla 'productos_auditron' está lista.<br>";
+    echo " Estructura verificada: La tabla 'productos_auditron' está lista.<br>";
 } else {
-    die("❌ Error al crear la tabla: " . $conn->error);
+    die(" Error al crear la tabla: " . $conn->error);
 }
 
 // 2. Vaciar la tabla (Activo para pruebas)
 if ($conn->query("TRUNCATE TABLE productos_auditron")) {
-    echo "⚠️ Tabla vaciada: Se han borrado todos los registros anteriores.";
+    echo " Tabla vaciada: Se han borrado todos los registros anteriores.";
 } else {
-    echo "❌ Error al vaciar la tabla: " . $conn->error;
+    echo " Error al vaciar la tabla: " . $conn->error;
 }
 ?>
