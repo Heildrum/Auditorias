@@ -20,8 +20,8 @@
         <h1>Auditron 🚀</h1>
         <p>Sube cualquier Excel para extraer SKU y Precio automáticamente.</p>
         
-        <!-- Action ajustado: verifica que la ruta a procesador.php sea correcta -->
-        <form action="/auditron/src/procesador.php" method="POST" enctype="multipart/form-data" id="uploadForm">
+        <!-- CAMBIO AQUÍ: Se eliminó /auditron/ para usar ruta relativa -->
+        <form action="src/procesador.php" method="POST" enctype="multipart/form-data" id="uploadForm">
             <input type="file" name="excel_file" accept=".xlsx, .xls" required>
             <button type="submit" id="btnSubmit">Iniciar Procesamiento</button>
         </form>
