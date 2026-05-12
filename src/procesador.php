@@ -84,4 +84,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
         "message" => "No se recibió ningún archivo."
     ]);
 }
-     
