@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../init.php';
+require_once __DIR__ . '/../config/init.php';
+require_once __DIR__ . '/../config/tables.php';
 
 // Mensaje de estado
 $message = "";
