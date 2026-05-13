@@ -1,10 +1,14 @@
 <?php
-// config/tables.php
+// Auditorias/config/tables.php
 
-// Jalamos la conexión de init.php
-require_once 'init.php';
+// Ajustamos la ruta para llegar a init.php que está en src/
+require_once __DIR__ . '/../init.php'; 
 
-// 1. Crear la tabla si no existe
+/**
+ * Creación de la tabla 'productos_auditron'
+ * Esta tabla es el corazón de la integración. 
+ * Guardará los datos limpios del Excel y controlará la subida a Meli.
+ */
 $sql = "CREATE TABLE IF NOT EXISTS productos_auditron (
     id INT AUTO_INCREMENT PRIMARY KEY,
     sku VARCHAR(100) NOT NULL,
