@@ -2,7 +2,7 @@
 // Auditorias/config/tables.php
 
 // Ajustamos la ruta para llegar a init.php que está en src/
-require_once __DIR__ . '/../init.php'; 
+require_once __DIR__ . '/init.php'; 
 
 /**
  * 1. Creación de la tabla 'productos_auditron'
